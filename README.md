@@ -49,7 +49,7 @@ RAW(data upload) → STG (Staging) → CORE (Business Logic) → BI Output
 
 ## Business Intelligence Outputs
 
-Using Snowflake Worksheets Chart View, several queries were written and visualized (But further will be visualized in PowerBI in details)
+Using Snowflake Worksheets Chart View, several queries were written and visualized just for demonstration. (But main dahsboards will be visualized in PowerBI instead)
 
 ---
 
