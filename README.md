@@ -1,82 +1,94 @@
 # CRM Analytics in Snowflake
 
-A hands-on data warehousing and BI project to demonstrate scalable internal analytics using Snowflake SQL and built-in visualization tools.
+A hands-on data warehousing and BI project to demonstrate scalable internal analytics using **Snowflake SQL**. This project replicates a Power BI dashboard pipeline where ETL was originally performed in Power BI. Now, all **ETL logic has been migrated to Snowflake**, separating data preparation from visualization for greater scalability and performance.
 
 ---
 
 ## Project Architecture & Workflow Overview
 
-This project simulates a production-grade ELT (Extract → Load → Transform) pipeline with a three-layer structure:
+This project simulates a production-grade ELT (Extract → Load → Transform) pipeline with a clean **three-layer structure**:
 
-RAW(data upload) → STG (Staging) → CORE (Business Logic) → BI Output
+**RAW (upload) → STG (Staging) → CORE (Business Logic) → BI Output (Power BI)**
 
 ---
 
-## Folder & Layer Logic
+## Folder & Layer Structure
 
-### RAW
+### 📂 RAW
 
-**Input**: CSV files representing sales, products, customers, and geolocation data from different regional sources.
+**Input**: Multiple regional CSVs (Canada, France, Germany) containing sales, customer, product, and city data, plus a new table for quarterly business objectives.
 
-### STG (Staging Layer)
+---
 
-**Goal**: Standardize and clean the raw data into usable relational formats.
+### 📂 STG (Staging Layer)
 
-**Cleaning Steps:**
+**Goal**: Clean and standardize raw inputs into structured relational tables.
 
-* Renamed inconsistent column headers (e.g., `product_id` → `PRODUCT_ID`)
-* Casted data types (e.g., VARCHAR to DATE, NUMBER)
-* Filtered out null or invalid keys (e.g., `WHERE PRODUCTKEY IS NOT NULL`)
-* Trimmed whitespace, standardized category labels (e.g., proper casing)
-* Ensured referential integrity for joins (e.g., cleaned missing foreign key links)
+**Key Cleaning Tasks:**
 
-### CORE (Business Logic Layer)
+- Renamed inconsistent column headers (e.g., `product_id` → `PRODUCT_ID`)
+- Casted data types (e.g., `VARCHAR` to `DATE`, `NUMBER`)
+- Parsed regional date formats (e.g., `DD/MM/YY`)
+- Filtered out null or invalid keys (`WHERE PRODUCTKEY IS NOT NULL`)
+- Mapped category hierarchies (subcategory → category → parent category)
+- Created calculated columns such as `year`, `quarter`, `year_quarter`
+- Added region labels to support consolidated reporting
+- Added a staging table for business targets (`STG_OBJECTIVES`), which standardizes columns like `YEAR`, `QUARTER`, `TARGET`, and constructs a `YEAR_QUARTER_COUNTRY` key for joining.
 
-**Goal**: Build domain-specific views for analytics and reporting use.
+---
 
-**Actions:**
+### 📂 CORE (Business Logic Layer)
 
-* Joined staging tables (e.g., total sales over countries, sales + product + city)
-* Created dimension-style views (e.g., product, customer, geography)
-* Applied transformations like:
-  * Aggregated sales by product, region, or category
-  * Grouped by time dimension (year, quarter)
-  * Resolved hierarchy (e.g., subcategory → category → parent category)
+**Goal**: Create analytics-ready, joined tables for business use cases.
 
-**Outcome**: Clean, business-consumable views ready for analysis.
+**Transformations:**
+
+- Unified regional sales into one fact table
+- Joined dimensions like product, customer, geography
+- Applied date breakdown (year, quarter, etc.)
+- Integrated with business objectives to compare actual vs. target
 
 ---
 
 ## Business Intelligence Outputs
 
-Using Snowflake Worksheets Chart View, several queries were written and visualized just for demonstration. (But main dahsboards will be visualized in PowerBI instead)
+Although Snowflake’s Worksheet Charts were used for development previews, **all final dashboards will be created in Power BI**. This decouples logic (SQL) from presentation and enables scalability.
 
 ---
 
-## 📆 Final Core Tables Created
+## Final CORE Views (Fact & Dimensions)
 
-After staging and transformation, the following key **CORE** tables or views are established:
+1. ### `CORE.SALES_ALL`
+   * Union of Canada, France, and Germany sales.
+   * Enriched with region, standardized date, and quarterly info.
 
-1. **SALES Summary Table**
+2. ### `CORE.SALES_WITH_CUSTOMER`
+   * Sales joined with customer demographics.
+   * Enables segmentation by income, education, household, etc.
 
-   * Unified fact table combining all regional sales data.
-   * Includes enriched date fields: day, month, quarter, year, and year-quarter.
-   *Granular sales transactions with product, customer, and region IDs.
+3. ### `CORE.PRODUCT_DIM`
+   * Dimension table with product → subcategory → category hierarchy.
 
-2. **Product Dimension Table**
+4. ### `CORE.SALES_WITH_PRODUCT_CITY`
+   * Combines sales with product and city-level attributes.
+   * Used for geo-product trend visualizations.
 
-   * Contains enriched product metadata including name, category, subcategory, and parent category
-   * Used for segmentation and category-level reporting
+5. ### `CORE.SALES_OBJECTIVE_COMPARISON` 
+   * Aggregates total sales by region and year_quarter from the sales fact table.
+   * Joins with the OBJECTIVES table to compare actual performance against quarterly targets (min, target, max).
+   * Calculates:
+     1. Target difference (absolute and percentage) between actual sales and target.
+     2. Quarter-over-quarter (QoQ) change in sales (absolute and percentage).
+   * Enables performance monitoring, KPI variance tracking, and trend analysis across regions and time.
 
-3. **Customer Sales Table**
+---
 
-   * Extended view with customer-level fields.
-   * Enables analysis like customer value, repeat purchases, etc.
+## Summary
+  * Snowflake is better suited for complex ETL workflows, scalable storage, and cleanly separating logic into reusable views.
 
+  * Power BI provides stronger visual capabilities and is easier for creating relationships and quick dashboards.
 
-4. **Product and Region Sales Table**
+  * This project first built the full ETL and dashboard in Power BI, then migrated the ETL logic to Snowflake to improve scalability and transparency while keeping Power BI focused on the front-end visuals.
 
-   * Joined fact with product and city details.
-   * Enables analysis like product popularity by city or country.
+  * Together, Snowflake + Power BI delivers a powerful architecture for internal analytics: a cloud-based backend for data engineering and a user-friendly frontend for business insights.
 
-These CORE tables form the foundation for ad hoc queries and dashboard metrics, allowing teams to answer strategic questions like top product categories, best-performing regions, and customer-level analysis.
