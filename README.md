@@ -1,4 +1,4 @@
-# CRM Analytics in Snowflake
+# CRM Sales Analytics in Snowflake & Power BI
 
 A hands-on data warehousing and BI project to demonstrate scalable internal analytics using **Snowflake SQL**. This project replicates a Power BI dashboard pipeline where ETL was originally performed in Power BI. Now, all **ETL logic has been migrated to Snowflake**, separating data preparation from visualization for greater scalability and performance.
 
